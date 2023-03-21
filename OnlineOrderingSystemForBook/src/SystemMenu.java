@@ -9,8 +9,8 @@ public class SystemMenu {
     private static Date cur_date = Calendar.getInstance().getTime();  
     private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
     private static String date_in_str = dateFormat.format(cur_date); 
+    private static Database db = new Database();
     public static void main(String[] args) {
-        System.out.println("None,You haven't input the right choose number");	
         try {
             while(true) {
                 mainMenu();
@@ -50,17 +50,14 @@ public class SystemMenu {
     }
 
     //TODO change it with get data from db
-    private static String getNumberOfBooks() {
-        return "123";
-        // Get from db
+    private static Integer getNumberOfBooks() {
+        return db.getCountNumOfTable("Book");
     }
-    private static String getNumberOfCustomers() {
-        return "456";
-        // Get from db
+    private static Integer getNumberOfCustomers() {
+        return db.getCountNumOfTable("Customer");
     }
-    private static String getNumberOfOrders() {
-        return "789";
-        // Get from db
+    private static Integer getNumberOfOrders() {
+        return db.getCountNumOfTable("`Order`");
     }
 
     private static int chooseFunction() {
@@ -70,9 +67,21 @@ public class SystemMenu {
     }
 
     private static void dbInit() {
+    	Scanner scan = new Scanner(System.in);
+    	System.out.println("Choose the function for database initialization");
+    	System.out.println("1: Create Tables   2: Load Init Records 3. Drop existing Records  ");
+    	int dbOption = scan.nextInt();
+    	
     	Database db = new Database();
         try {
-        	db.testGetBooks();
+        	if (dbOption == 1)  db.dbCreateTables();
+        	else if (dbOption == 2) db.dbLoadLocalRecords();
+        	else if (dbOption == 3) db.dbDropRecords();
+        	else {
+        		System.out.println("Please input the right inventory shipping status number");
+        		dbInit();
+        		}
+        	//db.testGetBooks();
         }catch(SQLException se){
             // handle JDBC error
             se.printStackTrace();
@@ -84,13 +93,11 @@ public class SystemMenu {
     }
 
     private static void customerOperation() {
-       
+
     }
 
     private static void BookStoreOperation() {
-        
+
     }
-
-
 
 } // end class
