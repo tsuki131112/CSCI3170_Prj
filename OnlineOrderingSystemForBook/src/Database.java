@@ -1,15 +1,6 @@
 import java.sql.*;
 
 public class Database {
-    private static final String JDBC_Driver = "com.mysql.cj.jdbc.Driver";
-    //static final String strConn ="jdbc:mysql://localhost:3306/booksystem?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String strConn = "jdbc:mysql://localhost:3306/booksystem";
-    private static final String username = "csci3170";
-    private static final String password = "testfor3170";
-
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(strConn, username, password);
-    }
 
     public Integer getCountNumOfTable(String target_table) {
         String sql = "SELECT COUNT(*) FROM " + target_table;
@@ -37,7 +28,7 @@ public class Database {
     }
 
     public void initializeTables() throws SQLException {
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = DataSource.getConnection(); Statement stmt = conn.createStatement()) {
             String[] statements = new String[]{
                     "CREATE DATABASE IF NOT EXISTS booksystem",
                     "CREATE TABLE IF NOT EXISTS Book (ISBN varchar(13) NOT NULL, title varchar(100) NOT NULL DEFAULT '', inventory_quantity int NOT NULL DEFAULT 0, price int NOT NULL DEFAULT 0, PRIMARY KEY (ISBN));",
@@ -60,7 +51,7 @@ public class Database {
 
     public void dbLoadLocalRecords() {
         try {
-            Connection conn = getConnection();
+            Connection conn = DataSource.getConnection();
 
             RecordInsertor recordInsertor = new RecordInsertor();
             recordInsertor.loadBookRecord(conn);
@@ -82,7 +73,7 @@ public class Database {
         String[] tableNames = {"Book_Ordered", "Order_By", "`Order`", "Customer", "Book_Author", "Author", "Book"};
 
         try {
-            conn = getConnection();
+            conn = DataSource.getConnection();
             Statement statement = conn.createStatement();
             for (String tableName : tableNames) {
                 String sql = "DROP TABLE " + tableName;
@@ -135,7 +126,7 @@ public class Database {
         ResultSet rs;
 
         try {
-            conn = getConnection();
+            conn = DataSource.getConnection();
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
 

@@ -9,42 +9,33 @@ import java.util.Arrays;
 public class RecordInsertor {
 
     public void loadBookRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO Book (ISBN, title, inventory_quantity, price) VALUES (?, ?, ?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_book.csv");
-            updateRow(bufferedReader, preparedStatement, 4);
-            System.out.println("Book record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO Book (ISBN, title, inventory_quantity, price) VALUES (?, ?, ?, ?)",
+                "sample_book.csv",
+                "Book",
+                4
+        );
     }
 
     public void loadAuthorRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO Author (Aid, Aname) VALUES (?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_author.csv");
-            updateRow(bufferedReader, preparedStatement, 2);
-            System.out.println("Author record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO Author (Aid, Aname) VALUES (?, ?)",
+                "sample_author.csv",
+                "Author",
+                2
+        );
     }
 
     public void loadBookAuthorRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO Book_Author (Aid, ISBN) VALUES (?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_book_author.csv");
-            updateRow(bufferedReader, preparedStatement, 2);
-            System.out.println("Book_Author record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO Book_Author (Aid, ISBN) VALUES (?, ?)",
+                "sample_book_author.csv",
+                "Book_Author",
+                2
+        );
     }
 
     public void loadCustomerRecord(Connection conn) {
@@ -76,42 +67,33 @@ public class RecordInsertor {
     }
 
     public void loadOrderRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO `Order` (Oid, orderISBN, Uid, order_quantity) VALUES (?, ?, ?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_order.csv");
-            updateRow(bufferedReader, preparedStatement, 4);
-            System.out.println("Order record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO `Order` (Oid, orderISBN, Uid, order_quantity) VALUES (?, ?, ?, ?)",
+                "sample_order.csv",
+                "Order",
+                4
+        );
     }
 
     public void loadOrderByRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO Order_By (Oid, Uid, order_date, shipping_status) VALUES (?, ?, ?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_order_by.csv");
-            updateRow(bufferedReader, preparedStatement, 4);
-            System.out.println("Order_By record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO Order_By (Oid, Uid, order_date, shipping_status) VALUES (?, ?, ?, ?)",
+                "sample_order_by.csv",
+                "Order_By",
+                4
+        );
     }
 
     public void loadBookOrderedRecord(Connection conn) {
-        try {
-            String insertSql = "INSERT INTO Book_Ordered (Oid, ISBN) VALUES (?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(insertSql);
-
-            BufferedReader bufferedReader = prepareReader("sample_book_ordered.csv");
-            updateRow(bufferedReader, preparedStatement, 2);
-            System.out.println("Book_Ordered record inserted successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecords(
+                conn,
+                "INSERT INTO Book_Ordered (Oid, ISBN) VALUES (?, ?)",
+                "sample_book_ordered.csv",
+                "Book_Ordered",
+                2
+        );
     }
 
     private BufferedReader prepareReader(String path) throws IOException {
@@ -134,5 +116,18 @@ public class RecordInsertor {
         }
         bufferedReader.close();
         statement.close();
+    }
+
+    private void loadRecords(Connection conn, String sql, String path, String tableName, int fieldCount) {
+        try {
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+
+            BufferedReader bufferedReader = prepareReader(path);
+            updateRow(bufferedReader, preparedStatement, fieldCount);
+
+            System.out.println(tableName + " record inserted successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
