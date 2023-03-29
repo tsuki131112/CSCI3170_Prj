@@ -2,7 +2,7 @@ import dataObject.Book;
 import dataObject.BookOrder;
 import dataObject.Order;
 import database.Database;
-import repository.CustomerRepository;
+import repository.BookRepository;
 import repository.OrderRepository;
 
 import java.sql.SQLException;
@@ -11,9 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class SystemMenu {
-    private static Date cur_date = Calendar.getInstance().getTime();
-    private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static String date_in_str = dateFormat.format(cur_date);
     private static Database db = new Database();
 
     public static void main(String[] args) {
@@ -36,20 +33,20 @@ public class SystemMenu {
     private static void mainMenu() {
         System.out.println();
         System.out.println("============Welcome to the Book Ordering Management System============");
-        System.out.println("+ System Date: " + date_in_str); //TODO change the existing time
+        System.out.println("+ System Date: " + java.sql.Timestamp.from(java.time.Instant.now()));
 
         if (db.checkTablesExist()) {
             int bookCount = getNumberOfBooks();
             int customerCount = getNumberOfCustomers();
             int orderCount = getNumberOfOrders();
-            System.out.println("+ database.Database records: Books (" + bookCount + "), Customers (" + customerCount + "), Orders (" + orderCount + ")");
+            System.out.println("+ Database records: Books (" + bookCount + "), Customers (" + customerCount + "), Orders (" + orderCount + ")");
         } else {
             System.out.println("Note: database does not exist!");
-            System.out.println("+ database.Database records: Books (0), Customers (0), Orders (0)");
+            System.out.println("+ Database records: Books (0), Customers (0), Orders (0)");
         }
 
         System.out.println("-------------------------------------");
-        System.out.printf("[1] database.Database initialization%n[2] Customer operations%n[3] Bookstore operations%n[4] Quit%n%n");
+        System.out.printf("[1] Database initialization%n[2] Customer operations%n[3] Bookstore operations%n[4] Quit%n%n");
         System.out.println("Please enter your option: ");
 
     }
@@ -146,12 +143,12 @@ public class SystemMenu {
         String searchValue = fetchPromptValue();
 
         try {
-            CustomerRepository customerRepository = new CustomerRepository();
+            BookRepository bookRepository = new BookRepository();
             List<Book> books = new ArrayList<>();
             switch (searchOption) {
-                case 1 -> books = customerRepository.findBookByISBN(searchValue);
-                case 2 -> books = customerRepository.findBookByTitle(searchValue);
-                case 3 -> books = customerRepository.findBooksByAuthorName(searchValue);
+                case 1 -> books = bookRepository.findBookByISBN(searchValue);
+                case 2 -> books = bookRepository.findBookByTitle(searchValue);
+                case 3 -> books = bookRepository.findBooksByAuthorName(searchValue);
                 default -> System.out.println("Invalid input. Try the operation again.");
             }
 

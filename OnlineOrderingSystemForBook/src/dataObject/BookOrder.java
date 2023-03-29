@@ -1,5 +1,6 @@
 package dataObject;
 
+import repository.BookRepository;
 import repository.CustomerRepository;
 
 import java.util.ArrayList;
@@ -10,8 +11,8 @@ public record BookOrder(String uid, String ISBN, int quantity) {
     public List<String> validate() {
         List<String> invalidReasons = new ArrayList<>();
 
-        CustomerRepository customerRepository = new CustomerRepository();
-        List<Book> books = customerRepository.findBookByISBN(ISBN);
+        BookRepository bookRepository = new BookRepository();
+        List<Book> books = bookRepository.findBookByISBN(ISBN);
         if (books.size() > 0) {
             int storage = books.get(0).quantity();
             if (storage < quantity) {
@@ -19,6 +20,13 @@ public record BookOrder(String uid, String ISBN, int quantity) {
             }
         } else {
             invalidReasons.add("Book ISBN cannot be found");
+        }
+
+        CustomerRepository customerRepository = new CustomerRepository();
+        boolean userExists = customerRepository.checkUserExists(uid);
+
+        if (!userExists) {
+            invalidReasons.add("User does not exist");
         }
 
         if (uid.length() == 0) {
