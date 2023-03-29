@@ -5,7 +5,7 @@ import java.sql.*;
 public class Database {
 
     public Integer getCountNumOfTable(String target_table) {
-        String sql = "SELECT COUNT(*) FROM " + target_table;
+        String sql = "SELECT COUNT(*) FROM booksystem." + target_table;
         int countResult = 0;
         try {
             ResultSet rs = executeQuery(sql);
@@ -127,16 +127,12 @@ public class Database {
         PreparedStatement stmt;
         ResultSet rs;
 
-        try {
-            conn = DataSource.getConnection();
-            stmt = conn.prepareStatement(sql);
-            rs = stmt.executeQuery();
+        conn = DataSource.getConnection();
+        stmt = conn.prepareStatement(sql);
+        rs = stmt.executeQuery();
 
-            return rs;
+        return rs;
 
-        } finally {
-
-        }
     }
 
 

@@ -12,24 +12,59 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderRepository {
-    public List<Order> findOrdersByUid(String uid) throws SQLException {
-        String sql = "SELECT DISTINCT * FROM booksystem.order NATURAL JOIN order_by WHERE uid=?";
-        Connection conn = DataSource.getConnection();
-        PreparedStatement statement = conn.prepareStatement(sql);
+    public boolean checkOrderExists(String orderId, String uid) {
+        try {
+            String sql = "SELECT DISTINCT * FROM booksystem.order WHERE Oid=? AND Uid=?";
+            Connection conn = DataSource.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
 
-        statement.setString(1, uid);
-        List<Order> orders = findOrderBys(statement);
+            statement.setString(1, orderId);
+            statement.setString(2, uid);
 
-        statement.close();
-        conn.close();
+            ResultSet rs = statement.executeQuery();
+            int count = 0;
+            while (rs.next()) {
+                count += 1;
+            }
 
-        return orders;
+            statement.close();
+            conn.close();
+
+            return count > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Order> findOrdersByUid(String uid) {
+        try {
+            String sql = "SELECT DISTINCT * FROM booksystem.order NATURAL JOIN order_by WHERE uid=?";
+            Connection conn = DataSource.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
+
+            statement.setString(1, uid);
+            List<Order> orders = findOrderBys(statement);
+
+            statement.close();
+            conn.close();
+
+            return orders;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     public void placeOrders(List<BookOrder> bookOrders) throws SQLException {
+        if (bookOrders.size() == 0) {
+            return;
+        }
+
         String lastOrderId = findLastOrderId();
         String currentOrderId = getNextOrderId(lastOrderId);
-
+        System.out.println(lastOrderId);
+        System.out.println(currentOrderId);
         String sql1 = "INSERT INTO booksystem.Order (Oid, orderISBN, Uid, order_quantity) VALUES (?,?,?,?);";
         String sql2 = "INSERT INTO Order_by (Oid, Uid, order_date, shipping_status) VALUES (?,?,?,?);";
         String sql3 = "UPDATE Book SET inventory_quantity=inventory_quantity-? WHERE ISBN=?";
@@ -38,22 +73,22 @@ public class OrderRepository {
         PreparedStatement statement2 = conn.prepareStatement(sql2);
         PreparedStatement statement3 = conn.prepareStatement(sql3);
 
+        statement2.setString(1, currentOrderId);
+        statement2.setString(2, bookOrders.get(0).uid());
+        statement2.setTimestamp(3, java.sql.Timestamp.from(java.time.Instant.now()));
+        statement2.setString(4, "ordered");
+        statement2.executeUpdate();
+
         for (BookOrder bookOrder : bookOrders) {
             statement1.setString(1, currentOrderId);
             statement1.setString(2, bookOrder.ISBN());
             statement1.setString(3, bookOrder.uid());
             statement1.setInt(4, bookOrder.quantity());
 
-            statement2.setString(1, currentOrderId);
-            statement2.setString(2, bookOrder.uid());
-            statement2.setTimestamp(3, java.sql.Timestamp.from(java.time.Instant.now()));
-            statement2.setString(4, "ordered");
-
             statement3.setInt(1, bookOrder.quantity());
             statement3.setString(2, bookOrder.ISBN());
 
             statement1.executeUpdate();
-            statement2.executeUpdate();
             statement3.executeUpdate();
         }
 
@@ -84,6 +119,45 @@ public class OrderRepository {
         return orders;
     }
 
+    public List<Order> findOrdersByShippingStatus(String status) {
+        try {
+            String sql = "SELECT * FROM booksystem.Order NATURAL JOIN Order_by WHERE shipping_status=?";
+
+            Connection conn = DataSource.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
+
+            statement.setString(1, status);
+            List<Order> orders = findOrderBys(statement);
+
+            statement.close();
+            conn.close();
+
+            return orders;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean updateOrder(Order order) {
+        try {
+            String sql = "UPDATE Order_by SET shipping_status=? WHERE Oid=? AND Uid=? ";
+
+            Connection conn = DataSource.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
+
+            statement.setString(1, order.shippingStatus());
+            statement.setString(2, order.orderId());
+            statement.setString(3, order.uid());
+            statement.executeUpdate();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private String findLastOrderId() throws SQLException {
         String sql = "SELECT Oid FROM booksystem.Order";
 
@@ -91,9 +165,16 @@ public class OrderRepository {
         PreparedStatement statement = conn.prepareStatement(sql);
 
         ResultSet rs = statement.executeQuery();
+
+        int orderNumber = 0;
         String orderId = "";
         while (rs.next()) {
-            orderId = rs.getString("Oid");
+            String nextOrderId = rs.getString("Oid");
+            int nextOrderNumber = Integer.parseInt(nextOrderId.substring(1));
+            if (nextOrderNumber > orderNumber) {
+                orderNumber = nextOrderNumber;
+                orderId = nextOrderId;
+            }
         }
 
         statement.close();
@@ -106,6 +187,5 @@ public class OrderRepository {
         int orderNumber = Integer.parseInt(orderId.substring(1));
         int nextOrderNumber = orderNumber + 1;
         return "O" + String.format("%07d", nextOrderNumber);
-
     }
 }

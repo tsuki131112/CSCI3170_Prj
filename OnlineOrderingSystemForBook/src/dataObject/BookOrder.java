@@ -26,7 +26,7 @@ public record BookOrder(String uid, String ISBN, int quantity) {
         boolean userExists = customerRepository.checkUserExists(uid);
 
         if (!userExists) {
-            invalidReasons.add("User does not exist");
+            invalidReasons.add("Customer does not exist");
         }
 
         if (uid.length() == 0) {

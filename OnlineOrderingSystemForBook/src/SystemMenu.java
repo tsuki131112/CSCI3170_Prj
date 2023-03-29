@@ -6,8 +6,6 @@ import repository.BookRepository;
 import repository.OrderRepository;
 
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class SystemMenu {
@@ -36,13 +34,23 @@ public class SystemMenu {
         System.out.println("+ System Date: " + java.sql.Timestamp.from(java.time.Instant.now()));
 
         if (db.checkTablesExist()) {
-            int bookCount = getNumberOfBooks();
-            int customerCount = getNumberOfCustomers();
-            int orderCount = getNumberOfOrders();
-            System.out.println("+ Database records: Books (" + bookCount + "), Customers (" + customerCount + "), Orders (" + orderCount + ")");
+            List<String> tableNames = new ArrayList<>();
+            tableNames.add("Author");
+            tableNames.add("Book");
+            tableNames.add("Book_author");
+            tableNames.add("Book_ordered");
+            tableNames.add("Customer");
+            tableNames.add("Order");
+            tableNames.add("Order_by");
+
+            int[] counts = getDatabaseRecordsNumber(tableNames);
+            System.out.print("+ Database records: ");
+            for (int i = 0; i < counts.length; i++) {
+                System.out.print(tableNames.get(i) + "(" + counts[i] + "), ");
+            }
+            System.out.println();
         } else {
             System.out.println("Note: database does not exist!");
-            System.out.println("+ Database records: Books (0), Customers (0), Orders (0)");
         }
 
         System.out.println("-------------------------------------");
@@ -51,17 +59,12 @@ public class SystemMenu {
 
     }
 
-    //TODO change it with get data from db
-    private static Integer getNumberOfBooks() {
-        return db.getCountNumOfTable("Book");
-    }
-
-    private static Integer getNumberOfCustomers() {
-        return db.getCountNumOfTable("Customer");
-    }
-
-    private static Integer getNumberOfOrders() {
-        return db.getCountNumOfTable("`Order`");
+    private static int[] getDatabaseRecordsNumber(List<String> tableNames) {
+        int[] counts = new int[tableNames.size()];
+        for (int i = 0; i < tableNames.size(); i++) {
+            counts[i] = db.getCountNumOfTable(tableNames.get(i));
+        }
+        return counts;
     }
 
     private static int fetchPromptOption() {
@@ -88,6 +91,7 @@ public class SystemMenu {
         System.out.println("[1] create tables");
         System.out.println("[2] initialize with records");
         System.out.println("[3] drop existing records");
+        System.out.println("[4] return to main menu");
 
         Database db = new Database();
 
@@ -97,6 +101,8 @@ public class SystemMenu {
                 case 1 -> db.initializeTables();
                 case 2 -> db.dbLoadLocalRecords();
                 case 3 -> db.dbDropRecords();
+                case 4 -> {
+                }
                 default -> {
                     System.out.println("Please input the right inventory shipping status number");
                     databaseOperation();
@@ -119,12 +125,15 @@ public class SystemMenu {
         System.out.println("[1] Search books");
         System.out.println("[2] Place an order");
         System.out.println("[3] Check orders history");
+        System.out.println("[4] return to main menu");
 
         int option = fetchPromptOption();
         switch (option) {
             case 1 -> searchBooks();
             case 2 -> placeBookOrders();
             case 3 -> checkOrderHistory();
+            case 4 -> {
+            }
             default -> {
                 System.out.println("Please input the right inventory shipping status number");
                 databaseOperation();
@@ -227,7 +236,71 @@ public class SystemMenu {
     }
 
     private static void bookstoreOperation() {
+        System.out.println("Choose a function for bookstore operation:");
+        System.out.println("[1] update order");
+        System.out.println("[2] query order");
+        System.out.println("[3] find N most popular books");
+        System.out.println("[4] return to main menu");
+        int searchOption = fetchPromptOption();
 
+        try {
+            switch (searchOption) {
+                case 1 -> updateOrder();
+                case 2 -> queryOrder();
+                case 3 -> findMostPopularBooks();
+                case 4 -> {
+                }
+                default -> System.out.println("Invalid input. Try the operation again.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    private static void updateOrder() {
+        System.out.println("Input order id:");
+        String orderId = fetchPromptValue();
+
+        System.out.println("Input user id:");
+        String uid = fetchPromptValue();
+
+        System.out.println("Input shipping status (shipped/ordered/received):");
+        String shippingStatus = fetchPromptValue();
+
+        Order order = new Order(null, orderId, uid, null, shippingStatus);
+
+        List<String> invalidOrderReasons = Order.validateUpdate(order);
+        if (invalidOrderReasons.size() > 0) {
+            System.out.println("Order is invalid. Reasons:");
+            for (String reason : invalidOrderReasons) {
+                System.out.println("\t" + reason);
+            }
+        } else {
+            OrderRepository orderRepository = new OrderRepository();
+            boolean updated = orderRepository.updateOrder(order);
+            if (updated) {
+                System.out.println("Updated order successfully!");
+            } else {
+                System.out.println("Updated order fail!");
+            }
+        }
+    }
+
+    private static void queryOrder() {
+        System.out.println("Input the shipping status (shipped/ordered/received) to query orders:");
+        String shippingStatus = fetchPromptValue();
+
+        OrderRepository orderRepository = new OrderRepository();
+        List<Order> orders = orderRepository.findOrdersByShippingStatus(shippingStatus);
+        Order.outputList(orders);
+    }
+
+    private static void findMostPopularBooks() {
+        System.out.println("Input the value of N:");
+        int topN = fetchPromptOption();
+
+        BookRepository bookRepository = new BookRepository();
+        List<Book> books = bookRepository.findMostPopularBooks(topN);
+        Book.outputList(books);
+    }
 }
