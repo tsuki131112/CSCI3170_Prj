@@ -87,41 +87,6 @@ public class Database {
         }
     }
 
-    private void dbResetRecords() { //TODO?
-        dbDropRecords();
-        dbLoadLocalRecords();
-    }
-
-    public void testGetBooks() throws SQLException { //For testing connect only
-        String sql;
-        ResultSet rs = null;
-
-        try {
-            sql = "SELECT ISBN, title, inventory_quantity, price FROM Book";
-            rs = executeQuery(sql);
-
-            // Process the results here
-            while (rs.next()) {
-                String ISBN = rs.getString("ISBN");
-                String title = rs.getString("title");
-                int inventory_quantity = rs.getInt("inventory_quantity");
-                int price = rs.getInt("price");
-
-                System.out.print("ISBN: " + ISBN);
-                System.out.print(", title: " + title);
-                System.out.print(", inventory_quantity: " + inventory_quantity);
-                System.out.print(", price: " + price);
-                System.out.print("\n");
-            }
-
-        } finally {
-            // Close the resources in a finally block
-            if (rs != null) {
-                rs.close();
-            }
-        }
-    }
-
     public static ResultSet executeQuery(String sql) throws SQLException {
         Connection conn;
         PreparedStatement stmt;
