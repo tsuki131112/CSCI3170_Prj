@@ -99,7 +99,7 @@ public class RecordInsertor {
     }
 
     private BufferedReader prepareReader(String path) throws IOException {
-        String csvFolderPath = "OnlineOrderingSystemForBook/sample_record/";
+        String csvFolderPath = System.getProperty("user.dir")+"/sample_record/";
         String recordCsvPath = csvFolderPath + path;
         BufferedReader bufferedReader = new BufferedReader(new FileReader(recordCsvPath));
         bufferedReader.readLine();  // skip the first line (column headers)
